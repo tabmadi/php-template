@@ -12,5 +12,11 @@ Each ADR has a one-sentence **Decides** line and ends with a flat **Rules** sect
 | [0103](0103-tasks.md) | `just` runs every task, and the recipe names `setup`, `format`, `lint`, `test`, `check`, and `ci` are a contract |
 | [0104](0104-formatters-and-linters.md) | One formatter for each tracked file type, each with a check, and every tool config in `.config/` |
 | [0105](0105-editor.md) | Zed is the supported editor, with committed project settings, and no check depends on an editor |
+| [0110](0110-php.md) | The dev shell and checks use PHP 8.5 from the pinned Nix input |
+| [0111](0111-composer.md) | Composer owns the PHP lock and class loading, and Nix uses its fixed hash vendor builder for the checks |
+| [0112](0112-php-quality.md) | Mago formats, lints, and checks types in the PHP source |
+| [0113](0113-tests.md) | PHPUnit runs the unit tests as a locked development dependency |
+| [0114](0114-php-editor.md) | The dev shell provides Phpactor to Zed, and Mago formats PHP on save |
+| [0115](0115-web-framework.md) | The PHP starter uses the PHP runtime and Composer as its application base |
 
 A new ADR starts from [`_template.md`](_template.md).

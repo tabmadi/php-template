@@ -8,16 +8,33 @@ import? 'template/justfile'
 default:
     @just --list
 
-# Build the dev shell and install the git hooks
-setup:
-    nix develop --command true
+mago := "mago --config .config/mago.toml"
+
+# Install the dependencies from composer.lock
+setup: in-shell
+    composer install --no-interaction --prefer-dist
+
+# Run the greeting command
+[positional-arguments]
+run *args: in-shell
+    php bin/greet.php "$@"
 
 # Apply every formatter
 format: in-shell
+    {{ mago }} lint --fix
+    {{ mago }} format
     rumdl check --fix .
     nixfmt $(git ls-files '*.nix')
     dprint fmt
     just --fmt
+
+# Check the Composer lock, PHP format, lint rules, and types
+lint-php: in-shell
+    composer validate --strict
+    composer check-platform-reqs --lock
+    {{ mago }} format --check
+    {{ mago }} lint
+    {{ mago }} analyze
 
 # Prose, comments, and ADRs, per ADR-0001
 lint-prose: in-shell
@@ -44,11 +61,11 @@ lint-just:
     just --fmt --check
 
 # Run every linter
-lint: lint-prose lint-md lint-secrets lint-data lint-nix lint-just
+lint: lint-php lint-prose lint-md lint-secrets lint-data lint-nix lint-just
 
 # Run the tests
-test:
-    @echo "No tests"
+test: in-shell
+    php vendor/bin/phpunit --bootstrap vendor/autoload.php tests
 
 # The fast gate: run it before you finish a change
 check: lint test
@@ -65,9 +82,29 @@ cache-push: in-shell
 ci-renovate: in-shell
     nix run --inputs-from . nixpkgs#renovate
 
-# Write the files that follow a dependency change, per ADR-0102. This repo has none
-deps-sync:
-    @true
+# Refresh the Nix vendor hash after a Composer lock or toolchain change
+deps-sync: in-shell
+    #!/usr/bin/env bash
+    set -euo pipefail
+    hash_file=nix/composer-vendor-hash
+    probe=$(nix eval --raw .#composer-vendor --apply '
+      vendor: (vendor.overrideAttrs (_: {
+        outputHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      })).drvPath
+    ')
+    build_log=$(nix build --no-link "$probe^*" 2>&1) || true
+    hash=$(sed -nE 's/^[[:space:]]*got:[[:space:]]+(sha256-[A-Za-z0-9+/=]+)[[:space:]]*$/\1/p' <<< "$build_log")
+    if [[ ! "$hash" =~ ^sha256-[A-Za-z0-9+/]{43}=$ ]]; then
+      printf '%s\n' "$build_log" >&2
+      exit 1
+    fi
+    if [[ "$hash" != "$(cat "$hash_file")" ]]; then
+      temp_hash=$(mktemp "$hash_file.XXXXXX")
+      trap 'rm -f "$temp_hash"' EXIT
+      printf '%s\n' "$hash" > "$temp_hash"
+      chmod 644 "$temp_hash"
+      mv "$temp_hash" "$hash_file"
+    fi
 
 [private]
 in-shell:

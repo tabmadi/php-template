@@ -1,137 +1,101 @@
-# GitHub Project Template
+# PHP Template
 
-A language-agnostic base for a new GitHub repository. It holds the community health files, the issue and pull request templates, a pinned toolchain, git hooks, a CI gate, and the documentation convention. Every other template in the [blueprints](https://github.com/tabmadi/blueprints) set starts from it.
-
-It holds no application code. A repo made from it adds the language tools and fills in the task contract.
+A base for PHP command-line projects and packages. A small greeting command shows how to load and test code with Composer.
 
 ## Stack
 
 | Tool | Owns |
 | --- | --- |
-| [Nix](https://nixos.org) with flakes | Tool versions, the dev shell, and the sandboxed checks |
-| [tabkit](https://github.com/tabmadi/tabkit) | The shared dev shell, git hooks, and checks, and the rules for prose, comments, and ADRs |
-| [just](https://just.systems) | Tasks |
-| [Zed](https://zed.dev) | The supported editor, with project settings in `.zed/` |
-| [git-hooks.nix](https://github.com/cachix/git-hooks.nix) | Git hooks |
-| [cocogitto](https://docs.cocogitto.io) | Conventional Commits checks |
-| [rumdl](https://github.com/rvben/rumdl) | Markdown lint |
-| [dprint](https://dprint.dev) | JSON, TOML, and YAML format |
-| [gitleaks](https://github.com/gitleaks/gitleaks) | Secret scan |
-| [Renovate](https://docs.renovatebot.com) | Updates to the pinned versions |
+| [PHP](https://www.php.net/) | The PHP 8.5 runtime |
+| [Composer](https://getcomposer.org/) | Package dependencies, the lock file, and PSR-4 class loading |
+| [Mago](https://mago.carthage.software/) | PHP format, lint, and type checks |
+| [PHPUnit](https://phpunit.de/) | Unit tests |
+| [Phpactor](https://phpactor.readthedocs.io/) | The PHP language server for Zed |
+| [Nix](https://nixos.org/) and [tabkit](https://github.com/tabmadi/tabkit) | The pinned dev shell, git hooks, and sandboxed checks |
+| [just](https://just.systems/) | The tasks that run the tools |
+| [Renovate](https://docs.renovatebot.com/) | Updates to the pinned dependencies and tools |
 
 ## Getting started
 
-1. Install [Nix](https://nixos.org/download) and enable flakes. For the editor, also install [Zed](https://zed.dev), and [direnv](https://direnv.net) with [nix-direnv](https://github.com/nix-community/nix-direnv). direnv enters the dev shell on `cd`, and Zed loads it through direnv.
-2. Clone the repo and enter the dev shell. The first entry downloads every tool and installs the git hooks:
+Install [Nix](https://nixos.org/download/) with flakes enabled. In the repo, enter the dev shell and install the dependencies.
 
-   ```bash
-   git clone git@github.com:tabmadi/github-project-template.git
-   cd github-project-template
-   nix develop
-   ```
+```bash
+nix develop
+just setup
+just run "Grace Hopper"
+```
 
-3. Run the gate:
-
-   ```bash
-   just check
-   ```
+The command prints `Hello, Grace Hopper!`. Run `just run` to use the default name.
 
 ## Editor
 
-Open the folder in Zed, and run `direnv allow` once. Zed suggests its Nix extension when you open `flake.nix`, so install it once on each machine. Zed then uses the language servers and formatters of the dev shell, formats on save, and lists every recipe under `task: spawn`. Zed loads the dev shell when it opens the folder. After a change to `flake.nix`, open the folder again, so Zed loads the new tools. Any other editor works through the same dev shell.
+Install the PHP extension in [Zed](https://zed.dev/). Install [direnv](https://direnv.net/) with [nix-direnv](https://github.com/nix-community/nix-direnv), then run `direnv allow`. Zed loads Phpactor and Mago from the dev shell. It uses the same Mago config as `just format`.
 
 ## Tasks
 
-| Recipe | Does |
+| Task | Does |
 | --- | --- |
-| `just setup` | Builds the dev shell and installs the git hooks |
-| `just format` | Applies every formatter |
-| `just lint` | Runs every linter: `lint-md` and `lint-secrets` |
-| `just test` | Runs the tests. Here it is a placeholder |
-| `just check` | Runs `lint` and `test`. Run it before you finish a change |
-| `just ci` | Runs `nix flake check`, exactly what CI runs. The `pre-push` hook runs it too |
+| `just setup` | Installs packages from `composer.lock` |
+| `just run [name]` | Runs the greeting command |
+| `just format` | Applies format and safe lint fixes |
+| `just lint` | Checks Composer, PHP, and the shared file types |
+| `just test` | Runs the PHPUnit tests |
+| `just check` | Runs lint and tests with the local dependencies |
+| `just ci` | Runs the same Nix checks as CI and the git pre-push hook |
+| `just deps-sync` | Refreshes the Nix vendor hash after a dependency or toolchain change |
 
 ## Layout
 
-```text
-.
-├── .config/
-│   ├── cog.toml            Commit types
-│   ├── dprint.json         JSON, TOML, and YAML format rules
-│   ├── gitleaks.toml       Secret scan rules
-│   └── rumdl.toml          Markdown rules
-├── .github/
-│   ├── ISSUE_TEMPLATE/     Bug, feature, and documentation issue forms
-│   ├── workflows/check.yml The CI gate: just ci
-│   ├── CODE_OF_CONDUCT.md
-│   ├── PULL_REQUEST_TEMPLATE.md
-│   ├── SECURITY.md
-│   └── renovate.json       Updates to the pinned versions
-├── .zed/                   Zed project settings and tasks
-├── docs/adr/               The decisions of the project: foundations, doc conventions, toolchain
-├── template/               What only the template needs: its contract, checks, and outputs
-├── .envrc                  Enters the dev shell through direnv
-├── flake.nix               The dev shell, the git hooks, and the checks
-├── flake.lock              The pinned nixpkgs and inputs
-├── justfile                Tasks
-├── AGENTS.md               Hints for coding agents
-├── README.md
-└── LICENSE
-```
+| Path | Holds |
+| --- | --- |
+| `bin/greet.php` | The command entry point |
+| `src/` | PHP classes that Composer loads |
+| `tests/` | PHPUnit tests |
+| `composer.json`, `composer.lock` | The project manifest and exact PHP package versions |
+| `.config/mago.toml` | PHP source paths and checks |
+| `flake.nix`, `flake.lock` | The dev shell, hooks, checks, and pinned inputs |
+| `nix/composer-vendor-hash` | The hash of the locked dependencies that Nix fetches |
+| `docs/adr/` | The project decisions |
+| `template/` | The template contract, checks, and copy steps |
 
 ## Starting a project
 
-Make a new project with Nix. It copies every file except the `template/` folder, which holds what only the template needs. This is the preferred way:
+Make a new project with Nix. It copies the project files and omits the template scope.
 
 ```bash
-nix flake new -t github:tabmadi/github-project-template my-project
+nix flake new -t github:tabmadi/php-template my-project
+cd my-project
+git init
+git add -A
+nix develop
+just setup
 ```
 
-Then follow these steps:
-
-1. In the new folder, run `git init` and `git add -A`. A flake sees only the files that git tracks.
-2. Run `nix develop`. It downloads the tools and installs the git hooks.
-3. Add your language tools to the dev shell in `flake.nix`, and your checks under `checks`.
-4. Fill in the `format`, `lint`, and `test` recipes in `justfile` with real commands. Keep the recipe names.
-5. Rewrite this README for the project, with the sections that ADR-0001 sets for its kind of repo.
-6. Update the contacts in `.github/SECURITY.md` and the copyright line in `LICENSE`.
-7. Delete the line that starts with `A new copy` from `AGENTS.md`.
-8. Set the squash merge message to the pull request title, with no body, and turn off the other merge styles:
-
-   ```bash
-   gh api -X PATCH repos/OWNER/REPO -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=BLANK -F allow_merge_commit=false -F allow_rebase_merge=false
-   ```
-
-9. Add a `RENOVATE_TOKEN` repository secret. The `renovate` workflow uses it to open update pull requests.
+1. Set your package name and description in `composer.json`. If you change the `App` namespace, update the Composer mapping and the PHP files together.
+2. Run `composer update --lock` and `just deps-sync` after the manifest change. Keep the lock and vendor hash in the same commit.
+3. Replace the sample command and tests with your code. Update the Mago source paths if your layout changes.
+4. Rewrite this README for your project. Update the contacts in `.github/SECURITY.md` and the copyright line in `LICENSE`.
+5. Remove the setup line from `AGENTS.md`.
+6. Set GitHub to squash merge with the pull request title and an empty message body. Add the `RENOVATE_TOKEN` repository secret for dependency updates.
 
 ### With the GitHub template button
 
-The button copies every file, the `template/` folder included. Its first commit, `Initial commit`, is not a Conventional Commit.
+Clone the new repository and run `nix develop`. Run `just init` to remove the template scope and the setup line from `AGENTS.md`.
 
-1. Clone the new repository, and run `nix develop` in it.
-2. Run `just init`. It removes the `template/` folder and the `A new copy` line of `AGENTS.md`.
-3. Replace the first commit of GitHub. This is safe before anyone else clones the repository:
-
-   ```bash
-   git add -A
-   git commit --amend -m "chore: start from <template> <release>"
-   git push --force-with-lease
-   ```
-
-4. Follow the steps above from step 2, and skip the step on `AGENTS.md`. Your repository already has git.
+Follow the project steps above and skip the step on `AGENTS.md`. Give the initial commit a Conventional Commits title when you set up the new repository.
 
 ## Decisions
 
-The ADRs in [docs/adr](docs/adr/README.md) record every decision and the reason for it. `template/adr/0000-template-contract.md` records what makes this repo a template. [ADR-0001](docs/adr/0001-documentation-conventions.md) is the house style for all text.
+See the [ADR index](docs/adr/README.md) for the tool choices, the options we compared, and the rules.
 
 ## Contributing
 
-Follow the [Code of Conduct](.github/CODE_OF_CONDUCT.md). Commit messages follow [Conventional Commits](https://www.conventionalcommits.org), and the `commit-msg` hook checks them. Run `just check` before you open a pull request.
+Run `just format` and `just check` before a change. Run `just ci` to check the full Nix gate.
 
 ## Security
 
-To report a vulnerability, follow [SECURITY.md](.github/SECURITY.md).
+See the [security policy](.github/SECURITY.md).
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE).
+See [LICENSE](LICENSE).

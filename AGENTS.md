@@ -9,6 +9,7 @@ This guide is for any coding agent that works in this repo. `AGENTS.md` is the o
 - A new copy starts with the steps in `Starting a project` in `README.md`. Delete this line when they are done.
 - If a `template/` folder exists, read `template/AGENTS.md` before anything else.
 - [ADR-0000](docs/adr/0000-foundations.md): what this repo is and the ADR process.
+- [ADR-0110](docs/adr/0110-php.md): the PHP runtime.
 - [docs/adr/README.md](docs/adr/README.md): the ADR index. To check a convention, grep the `Rules` sections first.
 
 ## Write in Simple English
@@ -26,5 +27,6 @@ Every text follows the Simple English profile in [ADR-0001](docs/adr/0001-docume
 - Work inside the dev shell: run `nix develop`, or allow direnv. Then run every task as `just <recipe>`.
 - Keep the recipe names, per [ADR-0000](docs/adr/0000-foundations.md).
 - Add a tool to the dev shell in `flake.nix`, never to a second version manager.
+- After a change to `composer.lock`, run `just deps-sync`. See [ADR-0111](docs/adr/0111-composer.md).
 - Before you finish a change, run `just check`. `just ci` runs the full sandboxed gate that CI runs.
 - Commit messages are a Conventional Commits title only, with no body. Never push unless asked to.

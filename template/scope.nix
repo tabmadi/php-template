@@ -8,7 +8,7 @@
       "github\\.com/tabmadi"
       "blueprints"
     ];
-    description = "A language-agnostic base: community files, a pinned toolchain, git hooks, a CI gate, and the doc rules";
+    description = "A PHP command-line project with Composer, Mago, and PHPUnit";
     welcomeText = ''
       # A new project
 

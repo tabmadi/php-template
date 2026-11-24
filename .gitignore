@@ -53,3 +53,7 @@ GEMINI.md
 result
 result-*
 .pre-commit-config.yaml
+
+# Composer and PHPUnit
+/vendor/
+/.phpunit.cache/

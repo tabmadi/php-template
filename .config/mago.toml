@@ -1,0 +1,8 @@
+php-version = "8.5"
+
+[source]
+paths = ["bin", "src", "tests"]
+includes = ["vendor"]
+
+[formatter]
+preset = "default"
